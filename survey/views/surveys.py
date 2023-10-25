@@ -24,6 +24,7 @@ class SurveyListAPIView(ListAPIView):
     queryset = Survey.objects.all()
     serializer_class = SurveyListSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = SurveyPaginator
 
 
 class SurveyRetrieveAPIView(RetrieveAPIView):
