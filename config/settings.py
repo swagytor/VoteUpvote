@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
-
 import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -44,8 +43,40 @@ INSTALLED_APPS = [
 
     'rest_framework',
 
+    'oauth2_provider',
+    'social_django',
+    'rest_framework_social_oauth2',
+
     'users',
     'survey',
+]
+
+# rest framework settings
+# https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
+# https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_social_oauth2.authentication.SocialAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ]
+}
+
+AUTH_USER_MODEL = 'users.User'
+
+# Authentication with drf-social-oauth2
+# https://www.django-rest-framework.org/api-guide/authentication/#drf-social-oauth2
+SOCIAL_AUTH_VK_OAUTH2_KEY = os.getenv('VK_AUTH_ID')
+SOCIAL_AUTH_VK_OAUTH2_SECRET = os.getenv('VK_AUTH_SECRET')
+
+# Authentication backends setting
+# https://docs.djangoproject.com/en/4.2/topics/auth/customizing/#specifying-authentication-backends
+AUTHENTICATION_BACKENDS = [
+    'social_core.backends.vk.VKOAuth2',
+    'rest_framework_social_oauth2.backends.DjangoOAuth2',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +91,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'social_django.context_processors.backends',
+    'social_django.context_processors.login_redirect',
+)
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -71,6 +107,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -130,4 +168,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'users.User'
+LOGIN_REDIRECT_URL = '/users/'
+
+DRFSO2_URL_NAMESPACE = 'drfso2'
