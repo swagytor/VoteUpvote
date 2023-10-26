@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'drf_yasg',
+    'django_filters',
 
     'oauth2_provider',
     'social_django',
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
 # rest framework settings
 # https://www.django-rest-framework.org/api-guide/authentication/#setting-the-authentication-scheme
 # https://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy
+# https://www.django-rest-framework.org/api-guide/filtering/#djangofilterbackend
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
@@ -61,7 +64,10 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
-    ]
+    ],
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),
 }
 
 AUTH_USER_MODEL = 'users.User'
@@ -171,3 +177,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/users/'
 
 DRFSO2_URL_NAMESPACE = 'drfso2'
+
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = os.getenv('EMAIL_PORT')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL')

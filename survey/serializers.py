@@ -1,7 +1,7 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
-from survey.models import Question, Answer, Survey, UserSurvey
+from survey.models import Question, Answer, Survey, WatchedSurvey
 
 
 class AnswerSerializer(ModelSerializer):
@@ -31,7 +31,7 @@ class SurveySerializer(ModelSerializer):
 
     class Meta:
         model = Survey
-        fields = ['pk', 'title', 'description', 'questions', 'likes_count', 'views_count', 'published_at']
+        fields = ['pk', 'title', 'description', 'questions', 'likes_count', 'views_count', 'published_at', 'author']
 
     def create(self, validated_data):
         questions = validated_data.pop('questions')
@@ -87,9 +87,23 @@ class SurveyListSerializer(ModelSerializer):
     def get_is_watched(self, instance):
         user = self.context['request'].user
 
-        user_survey = UserSurvey.objects.filter(user=user, survey=instance)
+        user_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
 
         return user_survey.exists()
+
+
+class FavoritesSurveySerializer(ModelSerializer):
+    class Meta:
+        model = Survey
+        fields = ['id', 'title', 'likes_count', 'views_count', 'published_at', 'author']
+
+
+class FavoriteSerializer(ModelSerializer):
+    survey = FavoritesSurveySerializer()
+
+    class Meta:
+        model = WatchedSurvey
+        fields = ['id', 'survey']
 
 
 class QuestionSerializer(ModelSerializer):
