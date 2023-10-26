@@ -7,3 +7,14 @@ DB_USER=
 DB_PASSWORD=
 DB_HOST=
 DB_PORT=
+
+# VK Authentication settings
+VK_AUTH_ID=
+VK_AUTH_SECRET=
+
+# email-hosting's settings
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_USE_SSL=
