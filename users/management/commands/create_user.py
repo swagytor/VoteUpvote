@@ -5,7 +5,7 @@ from users.models import User
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        User.objects.create_superuser(
+        User.objects.create_user(
             username=input('Введите Логин: '),
             first_name='IT',
             last_name='Power',
