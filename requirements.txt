@@ -6,6 +6,7 @@ certifi==2023.7.22
 cffi==1.16.0
 charset-normalizer==3.3.0
 cleo==2.0.1
+coverage==7.3.2
 crashtest==0.4.1
 cryptography==41.0.4
 defusedxml==0.8.0rc2
@@ -13,14 +14,17 @@ Deprecated==1.2.14
 distlib==0.3.7
 Django==4.2.6
 django-braces==1.15.0
+django-filter==23.3
 django-oauth-toolkit==2.3.0
 django-rest-framework-social-oauth2 @ git+https://github.com/islam-kamel/django-rest-framework-social-oauth2@658ba5af510857daa9dc82262521ce32f28b07b4
 djangorestframework==3.14.0
+drf-yasg==1.21.7
 dulwich==0.21.6
 ecdsa==0.18.0
 filelock==3.12.2
 idna==3.4
 importlib-metadata==6.8.0
+inflection==0.5.1
 installer==0.7.0
 jaraco.classes==3.3.0
 jeepney==0.8.0
@@ -49,6 +53,7 @@ python-dotenv==1.0.0
 python-jose==3.3.0
 python3-openid==3.2.0
 pytz==2023.3.post1
+PyYAML==6.0.1
 rapidfuzz==2.15.1
 requests==2.31.0
 requests-oauthlib==1.3.1
@@ -62,6 +67,7 @@ social-auth-core==4.4.2
 sqlparse==0.4.4
 tomlkit==0.12.1
 trove-classifiers==2023.9.19
+uritemplate==4.1.1
 urllib3==2.0.6
 virtualenv==20.24.5
 wrapt==1.15.0
