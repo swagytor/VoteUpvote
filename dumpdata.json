@@ -1,0 +1,410 @@
+[
+  {
+    "model": "survey.survey",
+    "pk": 1,
+    "fields": {
+      "title": "Насколько вы приятный собеседник?",
+      "description": "В данном опросе подготовлены вопрос, которые определят, насколько вы приятный собеседник. Удачи Вам!",
+      "likes_count": 1,
+      "views_count": 3,
+      "published_at": "2023-10-26",
+      "author": 1
+    }
+  },
+  {
+    "model": "survey.survey",
+    "pk": 2,
+    "fields": {
+      "title": "Как часто вы занимаетесь физической активностью?",
+      "description": "В данном опросе подготовлены вопросы, которые определят, насколько вы часто занимаетесь физической активностью. Удачи Вам!",
+      "likes_count": 0,
+      "views_count": 40,
+      "published_at": "2023-10-26",
+      "author": 2
+    }
+  },
+  {
+    "model": "survey.survey",
+    "pk": 3,
+    "fields": {
+      "title": "Насколько вы хороши в программировании?",
+      "description": "Сможете ли ответить на вопросы как настоящий программист?",
+      "likes_count": 1,
+      "views_count": 12,
+      "published_at": "2023-10-26",
+      "author": 2
+    }
+  },
+  {
+    "model": "survey.survey",
+    "pk": 10,
+    "fields": {
+      "title": "Годится ли автор проекта для того, чтобы работать с вами?",
+      "description": "В данном опросе подготовлены вопросы, которые помогут определить, подходит ли вам Алексей. Удачи Вам!",
+      "likes_count": 2,
+      "views_count": 100,
+      "published_at": "2023-10-28",
+      "author": 2
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 4,
+    "fields": {
+      "question": "Сколько жмёшь?",
+      "survey": 2,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 5,
+    "fields": {
+      "question": "Что думаете насчёт пробежки по парку?",
+      "survey": 2,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 6,
+    "fields": {
+      "question": "Как долго вы уже ходите туда?",
+      "survey": 2,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 8,
+    "fields": {
+      "question": "Опишите путь программиста",
+      "survey": 3,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 9,
+    "fields": {
+      "question": "Как вы относитесь к своей команде?",
+      "survey": 3,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 10,
+    "fields": {
+      "question": "Здороваетесь ли вы с каждым знакомым на улице?",
+      "survey": 1,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 11,
+    "fields": {
+      "question": "Нравится ли вам проводить целый день на природе?",
+      "survey": 1,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 12,
+    "fields": {
+      "question": "Как вы проводите свой день?",
+      "survey": 1,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 30,
+    "fields": {
+      "question": "Чем планируете заниматься на выходных?",
+      "survey": 1,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 38,
+    "fields": {
+      "question": "Выполнил ли автор все необходимые условия?",
+      "survey": 10,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 39,
+    "fields": {
+      "question": "Что заинтересовало вас в проекте?",
+      "survey": 10,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.question",
+    "pk": 40,
+    "fields": {
+      "question": "Вы берёте меня на работу?",
+      "survey": 10,
+      "answer": null
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 25,
+    "fields": {
+      "question": 10,
+      "option": "Да, постоянно"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 26,
+    "fields": {
+      "question": 10,
+      "option": "Как то не охота этим заниматься"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 27,
+    "fields": {
+      "question": 10,
+      "option": "Смотря с кем"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 28,
+    "fields": {
+      "question": 11,
+      "option": "А почему нет?"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 29,
+    "fields": {
+      "question": 11,
+      "option": "Всегда готов к таким активностям!"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 30,
+    "fields": {
+      "question": 11,
+      "option": "Да дома как то спокойней"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 34,
+    "fields": {
+      "question": 5,
+      "option": "Ну уж нет, спасибо!"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 35,
+    "fields": {
+      "question": 5,
+      "option": "Обожаю такую активность на природе!"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 36,
+    "fields": {
+      "question": 5,
+      "option": "Я предпочитаю ходьбу"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 37,
+    "fields": {
+      "question": 6,
+      "option": "Я там с самого рождения"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 38,
+    "fields": {
+      "question": 6,
+      "option": "Ни разу не был"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 39,
+    "fields": {
+      "question": 6,
+      "option": "Где то год уже"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 43,
+    "fields": {
+      "question": 8,
+      "option": "Через костыли к багам"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 44,
+    "fields": {
+      "question": 8,
+      "option": "Постоянно изучать что то новое и интересное"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 45,
+    "fields": {
+      "question": 8,
+      "option": "Мастер по набиванию шишек"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 46,
+    "fields": {
+      "question": 30,
+      "option": "Отдыхать"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 47,
+    "fields": {
+      "question": 30,
+      "option": "Дальше учиться"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 48,
+    "fields": {
+      "question": 30,
+      "option": "Абсолютно ничем"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 73,
+    "fields": {
+      "question": 4,
+      "option": "Только гриф("
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 74,
+    "fields": {
+      "question": 4,
+      "option": "145кг!"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 75,
+    "fields": {
+      "question": 4,
+      "option": "Когда как"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 76,
+    "fields": {
+      "question": 38,
+      "option": "Да, всё сделал идеально!"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 77,
+    "fields": {
+      "question": 38,
+      "option": "Могло быть и лучше"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 78,
+    "fields": {
+      "question": 38,
+      "option": "Получилось неплохо"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 79,
+    "fields": {
+      "question": 39,
+      "option": "Красиво расписанная документация к проекту"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 80,
+    "fields": {
+      "question": 39,
+      "option": "Понятный код и без лишних действий"
+    }
+  },
+  {
+    "model": "survey.choice",
+    "pk": 81,
+    "fields": {
+      "question": 39,
+      "option": "АБСОЛЮТНО ВСЁ!"
+    }
+  },
+  {
+    "model": "survey.watchedsurvey",
+    "pk": 1,
+    "fields": {
+      "user": 2,
+      "survey": 1,
+      "like_or_dislike": "like"
+    }
+  },
+  {
+    "model": "survey.watchedsurvey",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "survey": 3,
+      "like_or_dislike": "like"
+    }
+  },
+  {
+    "model": "survey.watchedsurvey",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "survey": 10,
+      "like_or_dislike": "like"
+    }
+  },
+  {
+    "model": "survey.watchedsurvey",
+    "pk": 4,
+    "fields": {
+      "user": 2,
+      "survey": 10,
+      "like_or_dislike": "like"
+    }
+  }
+]
