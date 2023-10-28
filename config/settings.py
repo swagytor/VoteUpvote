@@ -41,14 +41,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # DRF packages
     'rest_framework',
     'drf_yasg',
     'django_filters',
 
+    # OAuth2 packages
     'oauth2_provider',
     'social_django',
     'rest_framework_social_oauth2',
 
+    # apps
     'users',
     'survey',
 ]
@@ -77,7 +80,7 @@ AUTH_USER_MODEL = 'users.User'
 SOCIAL_AUTH_VK_OAUTH2_KEY = os.getenv('VK_AUTH_ID')
 SOCIAL_AUTH_VK_OAUTH2_SECRET = os.getenv('VK_AUTH_SECRET')
 
-# Authentication backends setting
+# Authentication backends settings
 # https://docs.djangoproject.com/en/4.2/topics/auth/customizing/#specifying-authentication-backends
 AUTHENTICATION_BACKENDS = [
     'social_core.backends.vk.VKOAuth2',
@@ -158,7 +161,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -173,8 +176,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-LOGIN_REDIRECT_URL = '/users/'
 
 DRFSO2_URL_NAMESPACE = 'drfso2'
 
