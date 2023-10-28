@@ -2,17 +2,18 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, decorators, filters, generics, permissions, response
 
 from survey.models import WatchedSurvey, Survey
-from survey.paginators import SurveyPaginator
 from survey.permissions import IsSurveyOwner
-from survey.serializers import SurveySerializer, SurveyListSerializer, SurveyUpdateSerializer
+from survey.serializers import SurveyQuestionSerializer, SurveySerializer, SurveyUpdateSerializer
 from survey.services import get_like_notification
 
 
 class SurveyCreateAPIView(generics.CreateAPIView):
-    serializer_class = SurveySerializer
+    """Контроллер для создания объекта Survey"""
+    serializer_class = SurveyQuestionSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
+        """Метод для автоматического определения автора у объекта Survey"""
         instance = serializer.save()
 
         user = self.request.user
@@ -23,25 +24,30 @@ class SurveyCreateAPIView(generics.CreateAPIView):
 
 
 class SurveyListAPIView(generics.ListAPIView):
-    queryset = Survey.objects.all()
-    serializer_class = SurveyListSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    pagination_class = SurveyPaginator
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    ordering_fields = ['likes_count', 'views_count']
-    search_fields = ['$title']
-
-
-class SurveyRetrieveAPIView(generics.RetrieveAPIView):
+    """Контроллер для получения списка объектов Survey"""
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['likes_count', 'views_count']
+    search_fields = ['$title', '$description']
+
+
+class SurveyRetrieveAPIView(generics.RetrieveAPIView):
+    """Контроллер для получения детальной информации объекта Survey"""
+    queryset = Survey.objects.all()
+    serializer_class = SurveyQuestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
+        """Метод для создания объекта WatchedSurvey при прочтении объекта Survey"""
         user = self.request.user
         instance = super().get_object()
 
-        WatchedSurvey.objects.create(user=user, survey=instance)
+        watched_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
+
+        if not watched_survey.exists():
+            WatchedSurvey.objects.create(user=user, survey=instance)
 
         instance.views_count += 1
         instance.save()
@@ -50,38 +56,45 @@ class SurveyRetrieveAPIView(generics.RetrieveAPIView):
 
 
 class SurveyUpdateAPIView(generics.UpdateAPIView):
+    """Контроллер для обновления объекта Survey"""
     queryset = Survey.objects.all()
     serializer_class = SurveyUpdateSerializer
     permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
 
 
 class SurveyDestroyAPIView(generics.DestroyAPIView):
+    """Контроллер для удаления объекта Survey"""
     queryset = Survey.objects.all()
-    serializer_class = SurveyListSerializer
     permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
 
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes([permissions.IsAuthenticated])
-def like_survey(request, survey_pk):
+def like_survey(request, pk):
+    """Контроллер для добавления лайка к опросу"""
     user = request.user
-    survey = Survey.objects.filter(pk=survey_pk).first()
+    survey = Survey.objects.filter(pk=pk).first()
     message = None
 
-    watched_survey = WatchedSurvey.objects.filter(user=user, survey=survey_pk).first()
+    # ищем опрос среди просмотренных пользователем опросов
+    watched_survey = WatchedSurvey.objects.filter(user=user, survey=pk).first()
 
+    # если находим, то ставим лайк
     if watched_survey:
+        # если лайк уже стоит, то мы его убираем
         if watched_survey.like_or_dislike == 'like':
             watched_survey.like_or_dislike = None
             survey.likes_count -= 1
             message = f'Вы убрали лайк с опроса "{survey}"'
 
+        # если лайк не стоит, то мы его ставим
         elif watched_survey.like_or_dislike in ('dislike', None):
             watched_survey.like_or_dislike = 'like'
             survey.likes_count += 1
             message = f'Вы поставили лайк опросу "{survey}"'
 
             author = survey.author
+            # если у автора опроса будет указана почта, то мы отправим ему уведомление по почте
             if author is not None and author.email:
                 get_like_notification(survey=survey, user_who_liked=user)
 
@@ -90,25 +103,31 @@ def like_survey(request, survey_pk):
 
         return response.Response({"message": message}, status=status.HTTP_200_OK)
 
+    # если не нашёлся просмотренный опрос, выводим ошибку
     return response.Response({"error": "Вы не можете поставить оценку так как не посмотрели опрос!"},
                              status=status.HTTP_400_BAD_REQUEST)
 
 
 @decorators.api_view(['GET'])
 @decorators.permission_classes([permissions.IsAuthenticated])
-def dislike_survey(request, survey_pk):
+def dislike_survey(request, pk):
+    """Контроллер для добавления дизлайка к опросу"""
     user = request.user
-    survey = Survey.objects.filter(pk=survey_pk).first()
+    survey = Survey.objects.filter(pk=pk).first()
     message = None
+    # ищем опрос среди просмотренных пользователем опросов
+    watched_survey = WatchedSurvey.objects.filter(user=user, survey=pk).first()
 
-    watched_survey = WatchedSurvey.objects.filter(user=user, survey=survey_pk).first()
-
+    # если находим, то ставим дизлайк
     if watched_survey:
+
+        # если дизлайк уже стоит, то мы его убираем
         if watched_survey.like_or_dislike == 'dislike':
             watched_survey.like_or_dislike = None
             survey.likes_count += 1
             message = f'Вы убрали дизлайк с опроса "{survey}"'
 
+        # если дизлайк не стоит, то мы его ставим
         elif watched_survey.like_or_dislike in ('like', None):
             watched_survey.like_or_dislike = 'dislike'
             survey.likes_count -= 1
@@ -118,6 +137,6 @@ def dislike_survey(request, survey_pk):
         survey.save()
 
         return response.Response({"message": message}, status=status.HTTP_200_OK)
-
+    # если не нашёлся просмотренный опрос, выводим ошибку
     return response.Response({"error": "Вы не можете поставить оценку так как не посмотрели опрос!"},
                              status=status.HTTP_400_BAD_REQUEST)
