@@ -39,7 +39,7 @@ urlpatterns = [
 
     path('admin/', admin.site.urls),
     path('auth/', include('rest_framework_social_oauth2.urls', namespace='drfso2')),
-    path('user/', include('users.urls')),
+    path('user/', include('users.urls', namespace='users')),
 
-    path('', include('survey.urls'))
+    path('', include('survey.urls', namespace='surveys'))
 ]

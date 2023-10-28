@@ -4,8 +4,8 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from survey.models import WatchedSurvey
-from survey.serializers import FavoriteSerializer
+from survey.models import WatchedSurvey, Survey
+from survey.serializers import FavoriteSerializer, SurveySerializer
 
 
 # Create your views here.
@@ -27,5 +27,35 @@ class FavoritesSurveyListAPIView(generics.ListAPIView):
         queryset = super().get_queryset()
 
         queryset = queryset.filter(user=user, like_or_dislike='like')
+
+        return queryset
+
+
+class MySurveyListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SurveySerializer
+    queryset = Survey.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.filter(author=user)
+
+        return queryset
+
+
+class SurveyHistoryListAPIView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FavoriteSerializer
+    queryset = WatchedSurvey.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.filter(user=user)
 
         return queryset

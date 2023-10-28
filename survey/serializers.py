@@ -1,83 +1,12 @@
 from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
-from survey.models import Question, Answer, Survey, WatchedSurvey
-
-
-class AnswerSerializer(ModelSerializer):
-    class Meta:
-        model = Answer
-        fields = ['text']
-
-
-class QuestionListSerializer(ModelSerializer):
-    answers = AnswerSerializer(many=True)
-
-    class Meta:
-        model = Question
-        fields = ['pk', 'survey', 'body', 'answers']
-
-
-class QuestionAnswerSerializer(ModelSerializer):
-    answers = AnswerSerializer(many=True)
-
-    class Meta:
-        model = Question
-        fields = ['body', 'answers']
+from survey import services
+from survey.models import Question, Survey, WatchedSurvey, Choice
 
 
 class SurveySerializer(ModelSerializer):
-    questions = QuestionAnswerSerializer(many=True)
-
-    class Meta:
-        model = Survey
-        fields = ['pk', 'title', 'description', 'questions', 'likes_count', 'views_count', 'published_at', 'author']
-
-    def create(self, validated_data):
-        questions = validated_data.pop('questions')
-
-        survey = Survey.objects.create(**validated_data)
-
-        for question_data in questions:
-            answers = question_data.pop('answers')
-            question = Question.objects.create(survey=survey, **question_data)
-
-            for answer in answers:
-                Answer.objects.create(question=question, **answer)
-
-        return survey
-
-
-class SurveyUpdateSerializer(ModelSerializer):
-    questions = QuestionAnswerSerializer(many=True)
-
-    class Meta:
-        model = Survey
-        fields = ['title', 'description', 'questions']
-
-    def update(self, instance, validated_data):
-        instance.title = validated_data.get('title', instance.title)
-        instance.description = validated_data.get('description', instance.description)
-
-        questions = validated_data.pop('questions')
-
-        if questions:
-            instance.questions.all().delete()
-
-            for question_data in questions:
-                answers = question_data.pop('answers')
-
-                question = Question.objects.create(survey=instance, **question_data)
-
-                for answer_data in answers:
-                    Answer.objects.create(question=question, **answer_data)
-
-        instance.save()
-
-        return instance
-
-
-class SurveyListSerializer(ModelSerializer):
+    """Сериалайзер для просмотра краткой информации об опросе"""
     is_watched = SerializerMethodField()
 
     class Meta:
@@ -85,6 +14,7 @@ class SurveyListSerializer(ModelSerializer):
         fields = ['id', 'title', 'description', 'likes_count', 'views_count', 'is_watched']
 
     def get_is_watched(self, instance):
+        """Метод проверки чтения данного опроса раньше"""
         user = self.context['request'].user
 
         user_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
@@ -92,47 +22,116 @@ class SurveyListSerializer(ModelSerializer):
         return user_survey.exists()
 
 
-class FavoritesSurveySerializer(ModelSerializer):
-    class Meta:
-        model = Survey
-        fields = ['id', 'title', 'likes_count', 'views_count', 'published_at', 'author']
-
-
 class FavoriteSerializer(ModelSerializer):
-    survey = FavoritesSurveySerializer()
+    """Сериалайзер для вывода лайкнутых опросов"""
+    survey = SurveySerializer()
 
     class Meta:
         model = WatchedSurvey
         fields = ['id', 'survey']
 
 
+class ChoiceSerializer(ModelSerializer):
+    """Сериалайзер для вывода вариантов ответа"""
+    class Meta:
+        model = Choice
+        fields = ['option']
+
+
 class QuestionSerializer(ModelSerializer):
-    answers = AnswerSerializer(many=True)
+    """Сериалайзер для вывода информации о вопросах"""
+    choices = ChoiceSerializer(many=True, required=False)
 
     class Meta:
         model = Question
-        fields = ['body', 'survey', 'answers']
+        fields = ['pk', 'question', 'choices', 'answer']
+        write_only_fields = ['question', 'choices', 'answer']
 
     def create(self, validated_data):
-        answers = validated_data.pop('answers')
+        """Переопределённый метод создания объекта Question, а также его вложенностей"""
+        survey = validated_data.get('survey')
 
-        question = Question.objects.create(**validated_data)
-
-        for answer in answers:
-            Answer.objects.create(question=question, **answer)
+        question = services.validate_new_question(survey, validated_data)
 
         return question
 
     def update(self, instance, validated_data):
-        instance.body = validated_data.get('body', instance.body)
+        """Переопределённый метод обновления объекта Question, а также его вложенностей"""
+        choices = None
 
-        new_data = validated_data.pop('answers')
+        instance.question = validated_data.get('question', instance.question)
+        instance.answer = validated_data.get('answer', instance.answer)
 
-        if new_data:
-            instance.answers.all().delete()
+        if validated_data.get('choices'):
+            choices = validated_data.pop('choices')
 
-            for answer in new_data:
-                Answer.objects.create(question=instance, **answer)
+        if choices is not None:
+            instance.choices.all().delete()
+
+            for option in choices:
+                Choice.objects.create(question=instance, **option)
+
+        instance.save()
+
+        return instance
+
+
+class CreateQuestionSerializer(ModelSerializer):
+    """Сериалайзер для создания объекта Question"""
+    choices = ChoiceSerializer(many=True, required=False)
+
+    class Meta:
+        model = Question
+        fields = ['pk', 'question', 'choices', 'survey', 'answer']
+        write_only_fields = ['question', 'choices', 'answer']
+
+    def create(self, validated_data):
+        """Переопределённый метод создания объекта Question с уже существующим Survey"""
+        survey = validated_data.pop('survey')
+
+        question = services.validate_new_question(survey, validated_data)
+
+        return question
+
+
+class SurveyQuestionSerializer(ModelSerializer):
+    """Сериалайзер для вывода полной информации об конкретном опросе со всеми его вопросами и вариантами ответа"""
+    questions = QuestionSerializer(many=True)
+
+    class Meta:
+        model = Survey
+        fields = ['pk', 'title', 'description', 'questions', 'likes_count', 'views_count', 'published_at', 'author']
+        write_only_fields = ['title', 'description', 'questions']
+
+    def create(self, validated_data):
+        """Переопределённый метод создания объекта Survey, а также его вложенностей"""
+        questions = validated_data.pop('questions')
+
+        survey = Survey.objects.create(**validated_data)
+
+        for question_data in questions:
+            services.validate_new_question(survey, question_data)
+
+        return survey
+
+
+class SurveyUpdateSerializer(ModelSerializer):
+    """Сериалайзер для обновления объекта Survey"""
+    questions = QuestionSerializer(many=True, required=False)
+
+    class Meta:
+        model = Survey
+        fields = ['title', 'description', 'questions']
+
+    def update(self, instance, validated_data):
+        """Переопределённый метод обновления объекта Survey, а также его вложенностей"""
+        instance.title = validated_data.get('title')
+        instance.description = validated_data.get('description', instance.description)
+
+        if validated_data.get('questions'):
+            questions_data = validated_data.pop('questions')
+
+            services.validate_questions(instance, questions_data)
 
         instance.save()
 

@@ -1,9 +1,13 @@
 from django.urls import path
 
+from survey.apps import SurveyConfig
 from survey.views.questions import QuestionCreateAPIView, QuestionUpdateAPIView, QuestionListAPIView, \
     QuestionRetrieveAPIView, QuestionDestroyAPIView
 from survey.views.surveys import SurveyCreateAPIView, SurveyListAPIView, SurveyRetrieveAPIView, SurveyUpdateAPIView, \
     SurveyDestroyAPIView, like_survey, dislike_survey
+
+app_name = SurveyConfig.name
+
 
 urlpatterns = [
     path('survey/create/', SurveyCreateAPIView.as_view(), name='survey-create'),
@@ -12,8 +16,8 @@ urlpatterns = [
     path('survey/<int:pk>/update/', SurveyUpdateAPIView.as_view(), name='survey-update'),
     path('survey/<int:pk>/delete/', SurveyDestroyAPIView.as_view(), name='survey-delete'),
 
-    path('survey/<int:survey_pk>/like/', like_survey, name='survey-like'),
-    path('survey/<int:survey_pk>/dislike/', dislike_survey, name='survey-dislike'),
+    path('survey/<int:pk>/like/', like_survey, name='survey-like'),
+    path('survey/<int:pk>/dislike/', dislike_survey, name='survey-dislike'),
 
     path('question/create/', QuestionCreateAPIView.as_view(), name='question-create'),
     path('questions/', QuestionListAPIView.as_view(), name='question-list'),
