@@ -1,16 +1,36 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, decorators, filters, generics, permissions, response
+from rest_framework import status, decorators, filters, permissions, response, viewsets, generics
 
 from survey.models import WatchedSurvey, Survey
 from survey.permissions import IsSurveyOwner
-from survey.serializers import SurveyQuestionSerializer, SurveySerializer, SurveyUpdateSerializer
+from survey import serializers
 from survey.services import get_like_notification
 
 
-class SurveyCreateAPIView(generics.CreateAPIView):
-    """Контроллер для создания объекта Survey"""
-    serializer_class = SurveyQuestionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+class MultiSerializerViewSet(viewsets.ModelViewSet):
+    serializers = {
+        'default': None,
+    }
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action,
+                                    self.serializers['default'])
+
+
+class SurveyViewSet(MultiSerializerViewSet):
+    queryset = Survey.objects.all()
+    permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    ordering_fields = ['likes_count', 'views_count']
+    search_fields = ['$title', '$description']
+
+    serializers = {
+        'create': serializers.SurveyQuestionSerializer,
+        'list': serializers.SurveySerializer,
+        'retrieve': serializers.SurveyQuestionSerializer,
+        'update': serializers.SurveyUpdateSerializer,
+        'default': serializers.SurveySerializer,
+    }
 
     def perform_create(self, serializer):
         """Метод для автоматического определения автора у объекта Survey"""
@@ -22,50 +42,22 @@ class SurveyCreateAPIView(generics.CreateAPIView):
 
         instance.save()
 
-
-class SurveyListAPIView(generics.ListAPIView):
-    """Контроллер для получения списка объектов Survey"""
-    queryset = Survey.objects.all()
-    serializer_class = SurveySerializer
-    permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
-    ordering_fields = ['likes_count', 'views_count']
-    search_fields = ['$title', '$description']
-
-
-class SurveyRetrieveAPIView(generics.RetrieveAPIView):
-    """Контроллер для получения детальной информации объекта Survey"""
-    queryset = Survey.objects.all()
-    serializer_class = SurveyQuestionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
     def get_object(self):
         """Метод для создания объекта WatchedSurvey при прочтении объекта Survey"""
         user = self.request.user
         instance = super().get_object()
 
-        watched_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
+        if self.action == 'retrieve':
 
-        if not watched_survey.exists():
-            WatchedSurvey.objects.create(user=user, survey=instance)
+            watched_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
 
-        instance.views_count += 1
-        instance.save()
+            if not watched_survey.exists():
+                WatchedSurvey.objects.create(user=user, survey=instance)
+
+            instance.views_count += 1
+            instance.save()
 
         return instance
-
-
-class SurveyUpdateAPIView(generics.UpdateAPIView):
-    """Контроллер для обновления объекта Survey"""
-    queryset = Survey.objects.all()
-    serializer_class = SurveyUpdateSerializer
-    permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
-
-
-class SurveyDestroyAPIView(generics.DestroyAPIView):
-    """Контроллер для удаления объекта Survey"""
-    queryset = Survey.objects.all()
-    permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
 
 
 @decorators.api_view(['GET'])
@@ -140,3 +132,108 @@ def dislike_survey(request, pk):
     # если не нашёлся просмотренный опрос, выводим ошибку
     return response.Response({"error": "Вы не можете поставить оценку так как не посмотрели опрос!"},
                              status=status.HTTP_400_BAD_REQUEST)
+
+
+class FavoritesSurveyListAPIView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.FavoriteSerializer
+    queryset = WatchedSurvey.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.filter(user=user, like_or_dislike='like')
+
+        return queryset
+
+
+class MySurveyListAPIView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.SurveySerializer
+    queryset = Survey.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.filter(author=user)
+
+        return queryset
+
+
+class SurveyHistoryListAPIView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = serializers.FavoriteSerializer
+    queryset = WatchedSurvey.objects.all()
+
+    def get_queryset(self):
+        user = self.request.user
+
+        queryset = super().get_queryset()
+
+        queryset = queryset.filter(user=user)
+
+        return queryset
+
+# class SurveyCreateAPIView(generics.CreateAPIView):
+#     """Контроллер для создания объекта Survey"""
+#     serializer_class = SurveyQuestionSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#     def perform_create(self, serializer):
+#         """Метод для автоматического определения автора у объекта Survey"""
+#         instance = serializer.save()
+#
+#         user = self.request.user
+#         if user.is_authenticated:
+#             instance.author = user
+#
+#         instance.save()
+#
+#
+# class SurveyListAPIView(generics.ListAPIView):
+#     """Контроллер для получения списка объектов Survey"""
+#     queryset = Survey.objects.all()
+#     serializer_class = SurveySerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#     filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+#     ordering_fields = ['likes_count', 'views_count']
+#     search_fields = ['$title', '$description']
+#
+#
+# class SurveyRetrieveAPIView(generics.RetrieveAPIView):
+#     """Контроллер для получения детальной информации объекта Survey"""
+#     queryset = Survey.objects.all()
+#     serializer_class = SurveyQuestionSerializer
+#     permission_classes = [permissions.IsAuthenticated]
+#
+#     def get_object(self):
+#         """Метод для создания объекта WatchedSurvey при прочтении объекта Survey"""
+#         user = self.request.user
+#         instance = super().get_object()
+#
+#         watched_survey = WatchedSurvey.objects.filter(user=user, survey=instance)
+#
+#         if not watched_survey.exists():
+#             WatchedSurvey.objects.create(user=user, survey=instance)
+#
+#         instance.views_count += 1
+#         instance.save()
+#
+#         return instance
+#
+#
+# class SurveyUpdateAPIView(generics.UpdateAPIView):
+#     """Контроллер для обновления объекта Survey"""
+#     queryset = Survey.objects.all()
+#     serializer_class = SurveyUpdateSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]
+#
+#
+# class SurveyDestroyAPIView(generics.DestroyAPIView):
+#     """Контроллер для удаления объекта Survey"""
+#     queryset = Survey.objects.all()
+#     permission_classes = [permissions.IsAuthenticated, IsSurveyOwner]

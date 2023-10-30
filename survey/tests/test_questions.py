@@ -39,7 +39,7 @@ class SurveyTestCase(APITestCase):
     def test_get_response_unauthorized(self):
         self.client.force_authenticate()
 
-        response = self.client.post(reverse('surveys:question-create'))
+        response = self.client.post(reverse('surveys:question-list'))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -47,20 +47,20 @@ class SurveyTestCase(APITestCase):
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.get(reverse('surveys:question-get', args=[self.question.pk]))
+        response = self.client.get(reverse('surveys:question-detail', args=[self.question.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.put(reverse('surveys:question-update', args=[self.question.pk]))
+        response = self.client.put(reverse('surveys:question-detail', args=[self.question.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.delete(reverse('surveys:question-delete', args=[self.question.pk]))
+        response = self.client.delete(reverse('surveys:question-detail', args=[self.question.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_question(self):
-        url = reverse('surveys:question-create')
+        url = reverse('surveys:question-list')
 
         post_data = {
             "survey": self.survey.pk,
@@ -93,7 +93,7 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(response.json(), expected_response)
 
     def test_retrieve_question(self):
-        url = reverse('surveys:question-get', args=[self.question.pk])
+        url = reverse('surveys:question-detail', args=[self.question.pk])
 
         expected_response = {'pk': self.question.pk,
                              'question': "What's up?",
@@ -106,7 +106,7 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(response.json(), expected_response)
 
     def test_update_question_user(self):
-        url = reverse('surveys:question-update', args=[self.question.pk])
+        url = reverse('surveys:question-detail', args=[self.question.pk])
         new_data = {
             'question': "Changed question?",
             'answer': 'New answer',
@@ -119,7 +119,7 @@ class SurveyTestCase(APITestCase):
     def test_update_question_owner(self):
         self.client.force_authenticate(user=self.admin)
 
-        url = reverse('surveys:question-update', args=[self.question.pk])
+        url = reverse('surveys:question-detail', args=[self.question.pk])
         new_data = {
             'question': "Changed question",
             'answer': 'New answer',
@@ -137,7 +137,7 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_delete_question_user(self):
-        url = reverse('surveys:question-delete', args=[self.question.pk])
+        url = reverse('surveys:question-detail', args=[self.question.pk])
 
         response = self.client.delete(url)
 
@@ -146,7 +146,7 @@ class SurveyTestCase(APITestCase):
     def test_delete_question_owner(self):
         self.client.force_authenticate(user=self.admin)
 
-        url = reverse('surveys:question-delete', args=[self.question.pk])
+        url = reverse('surveys:question-detail', args=[self.question.pk])
         list_url = reverse('surveys:question-list')
 
         response = self.client.delete(url)

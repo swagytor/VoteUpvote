@@ -1,28 +1,24 @@
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 
 from survey.apps import SurveyConfig
-from survey.views.questions import QuestionCreateAPIView, QuestionUpdateAPIView, QuestionListAPIView, \
-    QuestionRetrieveAPIView, QuestionDestroyAPIView
-from survey.views.surveys import SurveyCreateAPIView, SurveyListAPIView, SurveyRetrieveAPIView, SurveyUpdateAPIView, \
-    SurveyDestroyAPIView, like_survey, dislike_survey
+from survey.views.questions import QuestionViewSet
+from survey.views import surveys
 
 app_name = SurveyConfig.name
 
+survey_router = SimpleRouter()
+question_router = SimpleRouter()
+
+survey_router.register('survey', surveys.SurveyViewSet, basename='survey')
+question_router.register('question', QuestionViewSet, basename='question')
 
 urlpatterns = [
-    path('survey/create/', SurveyCreateAPIView.as_view(), name='survey-create'),
-    path('', SurveyListAPIView.as_view(), name='survey-list'),
-    path('survey/<int:pk>/', SurveyRetrieveAPIView.as_view(), name='survey-get'),
-    path('survey/<int:pk>/update/', SurveyUpdateAPIView.as_view(), name='survey-update'),
-    path('survey/<int:pk>/delete/', SurveyDestroyAPIView.as_view(), name='survey-delete'),
+                  path('survey/<int:pk>/like/', surveys.like_survey, name='survey-like'),
+                  path('survey/<int:pk>/dislike/', surveys.dislike_survey, name='survey-dislike'),
 
-    path('survey/<int:pk>/like/', like_survey, name='survey-like'),
-    path('survey/<int:pk>/dislike/', dislike_survey, name='survey-dislike'),
+                  path('favorites/', surveys.FavoritesSurveyListAPIView.as_view(), name='survey-favorite'),
+                  path('my_surveys/', surveys.MySurveyListAPIView.as_view(), name='my-survey'),
+                  path('history/', surveys.SurveyHistoryListAPIView.as_view(), name='survey-history'),
 
-    path('question/create/', QuestionCreateAPIView.as_view(), name='question-create'),
-    path('questions/', QuestionListAPIView.as_view(), name='question-list'),
-    path('question/<int:pk>/', QuestionRetrieveAPIView.as_view(), name='question-get'),
-    path('question/<int:pk>/update/', QuestionUpdateAPIView.as_view(), name='question-update'),
-    path('question/<int:pk>/delete/', QuestionDestroyAPIView.as_view(), name='question-delete'),
-
-]
+              ] + survey_router.urls + question_router.urls
