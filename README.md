@@ -32,4 +32,4 @@
 ---------------------------------------------
 # Материалы:
 ## 📖 [Проект VoteUpvote на Miro](https://miro.com/app/board/uXjVNWiBzII=/)
-## 👨‍🚀 [Готовые запросы на Postman]()
+## 👨‍🚀 [Готовые запросы на Postman](https://www.postman.com/swagytor/workspace/voteupvote)
