@@ -1,4 +1,5 @@
 import datetime
+import pprint
 
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -54,7 +55,7 @@ class SurveyTestCase(APITestCase):
     def test_get_response_unauthorized(self):
         self.client.force_authenticate()
 
-        response = self.client.post(reverse('surveys:survey-create'))
+        response = self.client.post(reverse('surveys:survey-list'))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -62,22 +63,22 @@ class SurveyTestCase(APITestCase):
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.get(reverse('surveys:survey-get', args=[self.survey.pk]))
+        response = self.client.get(reverse('surveys:survey-detail', args=[self.survey.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.put(reverse('surveys:survey-update', args=[self.survey.pk]))
+        response = self.client.put(reverse('surveys:survey-detail', args=[self.survey.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.delete(reverse('surveys:survey-delete', args=[self.survey.pk]))
+        response = self.client.delete(reverse('surveys:survey-detail', args=[self.survey.pk]))
 
         self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_create_survey(self):
         self.maxDiff = None
 
-        url = reverse('surveys:survey-create')
+        post_url = reverse('surveys:survey-list')
 
         post_data = {
             "title": "Насколько вы хороши в программировании?",
@@ -99,7 +100,7 @@ class SurveyTestCase(APITestCase):
             ]
         }
 
-        response = self.client.post(url, data=post_data, format='json')
+        response = self.client.post(post_url, data=post_data, format='json')
 
         expected_response = {'pk': response.json().get('pk'),
                              'title': 'Насколько вы хороши в программировании?',
@@ -139,7 +140,7 @@ class SurveyTestCase(APITestCase):
     def test_get_survey_retrieve_and_is_watched_status(self):
         self.maxDiff = None
 
-        url = reverse('surveys:survey-get', args=[self.survey.pk])
+        url = reverse('surveys:survey-detail', args=[self.survey.pk])
 
         expected_response = {'pk': self.survey.pk,
                              'title': 'API TestCase',
@@ -167,20 +168,20 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_update_survey_user(self):
-        url = reverse('surveys:survey-update', args=[self.survey.pk])
+        update_url = reverse('surveys:survey-detail', args=[self.survey.pk])
         new_data = {
             'title': 'API TestCase',
             'description': 'Updated description',
         }
 
-        response = self.client.put(url, data=new_data)
+        response = self.client.put(update_url, data=new_data)
 
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_survey_owner(self):
         self.client.force_authenticate(user=self.admin)
 
-        url = reverse('surveys:survey-update', args=[self.survey.pk])
+        update_url = reverse('surveys:survey-detail', args=[self.survey.pk])
         list_url = reverse('surveys:survey-list')
 
         expected_response = [{
@@ -197,7 +198,7 @@ class SurveyTestCase(APITestCase):
             'description': 'Updated description',
         }
 
-        response = self.client.put(url, data=new_data)
+        response = self.client.put(update_url, data=new_data)
 
         list_response = self.client.get(list_url)
 
@@ -206,28 +207,28 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
 
     def test_delete_survey_user(self):
-        url = reverse('surveys:survey-delete', args=[self.survey.pk])
+        delete_url = reverse('surveys:survey-detail', args=[self.survey.pk])
 
-        response = self.client.delete(url)
+        response = self.client.delete(delete_url)
 
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_delete_survey_owner(self):
         self.client.force_authenticate(user=self.admin)
 
-        url = reverse('surveys:survey-delete', args=[self.survey.pk])
+        delete_url = reverse('surveys:survey-detail', args=[self.survey.pk])
         list_url = reverse('surveys:survey-list')
 
-        response = self.client.delete(url)
+        response = self.client.delete(delete_url)
         list_response = self.client.get(list_url)
 
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEquals(list_response.json(), [])
 
     def test_like_survey_and_is_watched_status(self):
-        retrieve_url = reverse('surveys:survey-get', args=[self.survey.pk])
+        retrieve_url = reverse('surveys:survey-detail', args=[self.survey.pk])
         like_url = reverse('surveys:survey-like', args=[self.survey.pk])
-        favorite_url = reverse('users:survey-favorite')
+        favorite_url = reverse('surveys:survey-favorite')
 
         # пробуем поставить лайк на непросмотренный опрос
         like_response = self.client.get(like_url)
@@ -258,7 +259,7 @@ class SurveyTestCase(APITestCase):
 
     def test_dislike_survey(self):
         dislike_url = reverse('surveys:survey-dislike', args=[self.survey.pk])
-        retrieve_url = reverse('surveys:survey-get', args=[self.survey.pk])
+        retrieve_url = reverse('surveys:survey-detail', args=[self.survey.pk])
 
         # пробуем поставить дизлайк на непросмотренный опрос
         like_response = self.client.get(dislike_url)
@@ -274,8 +275,8 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(like_response.status_code, status.HTTP_200_OK)
 
     def test_history(self):
-        history_url = reverse('users:survey-history')
-        retrieve_url = reverse('surveys:survey-get', args=[self.survey.pk])
+        history_url = reverse('surveys:survey-history')
+        retrieve_url = reverse('surveys:survey-detail', args=[self.survey.pk])
 
         history_response = self.client.get(history_url)
 
@@ -299,7 +300,7 @@ class SurveyTestCase(APITestCase):
         self.assertEquals(history_response.json(), expected_response)
 
     def test_my_surveys(self):
-        my_surveys_url = reverse('users:survey-user')
+        my_surveys_url = reverse('surveys:my-survey')
 
         expected_response = [{
             'description': 'Description for TestCase',
